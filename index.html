@@ -258,9 +258,20 @@
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycby5Cki-X5_e_YIdwP8G3QWFkFd5Rb5d-6-uA_AJ-PgjkCv0zgG7J59TFxA0QYvBo3ci/exec"; 
         
-        // --- DETECCIÓN DINÁMICA DEL LOCAL ---
+        // --- DETECCIÓN DINÁMICA DEL LOCAL (Subdominios y Parámetros) ---
         const urlParams = new URLSearchParams(window.location.search);
-        const NOMBRE_LOCAL_ACTUAL = urlParams.get('local') || ""; 
+        let localDetectado = urlParams.get('local'); 
+
+        // Si no hay parámetro "?local=", intentamos leer el subdominio
+        if (!localDetectado) {
+            const host = window.location.hostname; 
+            // Verificamos que sea un subdominio de pido.club y no la raíz ni Vercel interno
+            if (host.includes('pido.club') && host !== 'pido.club' && !host.includes('vercel.app')) {
+                localDetectado = host.split('.')[0]; 
+            }
+        }
+
+        const NOMBRE_LOCAL_ACTUAL = localDetectado || ""; 
 
         let datosFull = {};
         let carritoExtras = []; 
@@ -692,7 +703,6 @@
             const idPed = document.getElementById('input-id-generado').value, mesa = document.getElementById('input-mesa').value;
             if (!mesa) { document.getElementById('cont-mesa').scrollIntoView(); document.getElementById('input-mesa').focus(); return mostrarAlerta(); }
             
-            // Agregamos local al payload
             const payload = { 
                 local: NOMBRE_LOCAL_ACTUAL, 
                 codigo: idPed, 
@@ -754,7 +764,6 @@
             btn.disabled = true; 
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>...';
 
-            // Agregamos local al payload para el POST
             const payload = { 
                 local: NOMBRE_LOCAL_ACTUAL,
                 codigo: idPed, nombre, formaEntrega: envio || "Local", 
